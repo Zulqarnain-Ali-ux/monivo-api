@@ -1,0 +1,45 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies — installed fresh inside image
+node_modules
+
+# Build artefacts from local machine
+dist
+
+# Environment files — secrets injected at runtime via ECS / Secrets Manager
+.env
+.env.*
+*.env
+
+# Test files — not needed in production image
+**/*.spec.ts
+**/*.spec.js
+test/
+coverage/
+
+# Development tooling
+.eslintrc*
+.prettierrc*
+jest.config*
+tsconfig.build.json
+
+# Infrastructure — not needed in application image
+infra/
+
+# Documentation
+README.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
