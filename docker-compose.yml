@@ -1,147 +1,124 @@
 version: '3.9'
 
-# ─────────────────────────────────────────────────────────────────
-#  MONIVO — local development stack
-#
-#  Run:        docker-compose up
-#  App:        http://localhost:3000
-#  Swagger:    http://localhost:3000/api/v1/docs
-#
-#  To reset all data:  docker-compose down -v
-# ─────────────────────────────────────────────────────────────────
-
 services:
 
-  # ── API + Frontend ─────────────────────────────────────────────
-  api:
-    build:
-      context: .
-      target: builder        # dev stage with devDeps for hot-reload
-    command: npm run start:dev
-    ports:
-      - '3000:3000'
-    environment:
-      NODE_ENV:               development
-      PORT:                   3000
-      API_PREFIX:             api/v1
-      FRONTEND_URL:           'http://localhost:3000'
+# ── API ─────────────────────────────────────────────
 
-      # Database — matches the postgres service below
-      DB_HOST:                postgres
-      DB_PORT:                5432
-      DB_NAME:                monivo
-      DB_USER:                monivo
-      DB_PASSWORD:            monivo_dev
-      DB_SSL:                 'false'
-      DB_SYNC:                'true'   # creates tables on first run
+api:
+build:
+context: .
+target: builder
+command: sh -c "npm run build && node dist/main.js"
+ports:
+- '3000:3000'
+environment:
+NODE_ENV: production
+PORT: 3000
+API_PREFIX: api/v1
+FRONTEND_URL: 'http://3.133.149.115:3000'
 
-      # Redis — matches the redis service below
-      REDIS_HOST:             redis
-      REDIS_PORT:             6379
+```
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_NAME: monivo
+  DB_USER: monivo
+  DB_PASSWORD: monivo_dev
+  DB_SSL: 'false'
+  DB_SYNC: 'true'
 
-      # Auth — change before any real deployment
-      JWT_SECRET:             dev-jwt-secret-at-least-32-chars-long
-      JWT_REFRESH_SECRET:     dev-refresh-secret-at-least-32-chars!!
-      JWT_EXPIRES_IN:         15m
-      JWT_REFRESH_EXPIRES_IN: 30d
-      BCRYPT_ROUNDS:          10
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
 
-      # Plaid — leave blank to use app without bank sync
-      PLAID_ENV:              sandbox
-      PLAID_CLIENT_ID:        ''
-      PLAID_SECRET:           ''
-      PLAID_WEBHOOK_URL:      ''
+  JWT_SECRET: dev-jwt-secret-at-least-32-chars-long
+  JWT_REFRESH_SECRET: dev-refresh-secret-at-least-32-chars!!
+  JWT_EXPIRES_IN: 15m
+  JWT_REFRESH_EXPIRES_IN: 30d
+  BCRYPT_ROUNDS: 10
 
-      # AWS — blank in dev; KMS falls back to base64, SES not sent
-      AWS_REGION:             us-east-1
-      AWS_KMS_KEY_ID:         ''
+  PLAID_ENV: sandbox
+  PLAID_CLIENT_ID: ''
+  PLAID_SECRET: ''
+  PLAID_WEBHOOK_URL: ''
 
-      # OTel — disabled; set OTEL_ENABLED=true if you run a collector
-      OTEL_ENABLED:           'false'
-      OTEL_SERVICE_NAME:      monivo-api-dev
-      OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4318'
+  AWS_REGION: us-east-1
+  AWS_KMS_KEY_ID: ''
 
-      # Email
-      SES_FROM_EMAIL:         noreply@monivo.ai
+  OTEL_ENABLED: 'false'
 
-      # Rate limiting — higher in dev
-      THROTTLE_TTL:           60
-      THROTTLE_LIMIT:         500
+  SES_FROM_EMAIL: noreply@monivo.ai
 
-    volumes:
-      - ./src:/app/src:ro       # hot-reload TypeScript source
-      - ./public:/app/public:ro # live-reload frontend HTML
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health/live || exit 1']
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 40s   # NestJS needs time to compile in dev mode
+  THROTTLE_TTL: 60
+  THROTTLE_LIMIT: 500
 
-  # ── Demo data seed ─────────────────────────────────────────────
-  # Runs once after the API is healthy, then exits.
-  # Creates demo@monivo.ai with 6 months of realistic spending data.
-  seed:
-    build:
-      context: .
-      target: builder
-    command: >
-      sh -c "
-        echo 'Waiting for API to be healthy...' &&
-        npx ts-node --project tsconfig.json src/database/seeds/demo.seed.ts
-      "
-    environment:
-      NODE_ENV:    development
-      DB_HOST:     postgres
-      DB_PORT:     5432
-      DB_NAME:     monivo
-      DB_USER:     monivo
-      DB_PASSWORD: monivo_dev
-      DB_SSL:      'false'
-    depends_on:
-      api:
-        condition: service_healthy
-    restart: 'no'
-
-  # ── PostgreSQL ─────────────────────────────────────────────────
+depends_on:
   postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB:       monivo
-      POSTGRES_USER:     monivo
-      POSTGRES_PASSWORD: monivo_dev
-    ports:
-      - '5432:5432'     # expose for GUI tools (TablePlus, pgAdmin, DBeaver)
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U monivo -d monivo']
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
-  # ── Redis ──────────────────────────────────────────────────────
+    condition: service_healthy
   redis:
-    image: redis:7-alpine
-    command: redis-server --save 60 1 --loglevel warning
-    ports:
-      - '6379:6379'     # expose for RedisInsight or redis-cli
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    restart: unless-stopped
+    condition: service_healthy
+
+restart: unless-stopped
+
+healthcheck:
+  test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health/live || exit 1']
+  interval: 10s
+  timeout: 5s
+  retries: 6
+  start_period: 40s
+```
+
+# ❌ DISABLED SEED (CAUSE OF YOUR ERROR)
+
+# seed:
+
+# build:
+
+# context: .
+
+# target: builder
+
+# command: npx ts-node src/database/seeds/demo.seed.ts
+
+# depends_on:
+
+# api:
+
+# condition: service_healthy
+
+# ── PostgreSQL ──────────────────────────────────────
+
+postgres:
+image: postgres:16-alpine
+environment:
+POSTGRES_DB: monivo
+POSTGRES_USER: monivo
+POSTGRES_PASSWORD: monivo_dev
+ports:
+- '5432:5432'
+volumes:
+- pg_data:/var/lib/postgresql/data
+healthcheck:
+test: ['CMD-SHELL', 'pg_isready -U monivo -d monivo']
+interval: 5s
+timeout: 5s
+retries: 10
+restart: unless-stopped
+
+# ── Redis ───────────────────────────────────────────
+
+redis:
+image: redis:7-alpine
+command: redis-server --save 60 1 --loglevel warning
+ports:
+- '6379:6379'
+volumes:
+- redis_data:/data
+healthcheck:
+test: ['CMD', 'redis-cli', 'ping']
+interval: 5s
+timeout: 3s
+retries: 10
+restart: unless-stopped
 
 volumes:
-  pg_data:    # PostgreSQL data persists between docker-compose restarts
-  redis_data: # Redis data persists between docker-compose restarts
+pg_data:
+redis_data:
