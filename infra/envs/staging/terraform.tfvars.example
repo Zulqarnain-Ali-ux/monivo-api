@@ -1,0 +1,19 @@
+# ── MONIVO Staging Environment ────────────────────────────────────
+# Copy to infra/ and run: terraform apply -var-file="envs/staging/terraform.tfvars"
+
+environment = "staging"
+aws_region  = "us-east-1"
+
+# Staging uses sandbox Plaid — real values needed even in staging
+# plaid_client_id    = "..."
+# plaid_secret       = "..."
+# db_password        = "..."
+# jwt_secret         = "..."
+# jwt_refresh_secret = "..."
+
+# Staging overrides — smaller/cheaper than production
+# Add these to main.tf locals or pass as -var flags:
+#   db_instance_class  = "db.t4g.micro"   (single-AZ in staging)
+#   ecs_desired_count  = 1
+#   ecs_min_capacity   = 1
+#   ecs_max_capacity   = 3

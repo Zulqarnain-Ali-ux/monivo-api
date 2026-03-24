@@ -1,0 +1,14 @@
+# ── MONIVO Production Environment ─────────────────────────────────
+# Never commit real values — use Secrets Manager or CI/CD secrets.
+# Template only. Fill in values in your CI/CD environment.
+
+environment = "production"
+aws_region  = "us-east-1"
+
+# Sensitive — set via CI/CD secrets, never commit:
+# plaid_client_id    = "..."
+# plaid_secret       = "..."
+# db_password        = "..."          # 32+ random chars
+# jwt_secret         = "..."          # 64+ random chars
+# jwt_refresh_secret = "..."          # 64+ random chars
+# api_image_tag      = "main-abc12345" # set by CI from git SHA
