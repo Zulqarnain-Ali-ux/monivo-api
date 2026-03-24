@@ -1,6 +1,11 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column,
-  ManyToOne, JoinColumn, CreateDateColumn, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 
@@ -28,8 +33,14 @@ export class Entry {
   @Column({ length: 500, default: '' })
   note: string;
 
-  @Column({ name: 'plaid_transaction_id', nullable: true, unique: true })
-  plaidTransactionId: string | null;
+  // ✅ FIXED COLUMN (IMPORTANT)
+  @Column({
+    name: 'plaid_transaction_id',
+    type: 'varchar',
+    nullable: true,
+    unique: true,
+  })
+  plaidTransactionId: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
