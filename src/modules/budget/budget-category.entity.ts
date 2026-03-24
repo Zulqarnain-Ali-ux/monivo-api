@@ -1,6 +1,11 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column,
-  ManyToOne, JoinColumn, UpdateDateColumn, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 
@@ -15,28 +20,34 @@ export class BudgetCategory {
   @Column({ name: 'user_id' })
   userId: string;
 
-  @Column({ name: 'cat_id', length: 50 })
+  @Column({ name: 'cat_id', type: 'varchar', length: 50 })
   catId: string; // 'rent', 'groc', 'dining' etc
 
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @Column({ name: 'group_type', length: 20 })
+  @Column({ name: 'group_type', type: 'varchar', length: 20 })
   groupType: BudgetGroup;
 
-  @Column({ name: 'cat_key', length: 100, nullable: true })
-  catKey: string | null;
+  // ✅ FIXED (IMPORTANT)
+  @Column({
+    name: 'cat_key',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  catKey: string;
 
   @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
   amount: number;
 
-  @Column({ length: 10, nullable: true })
-  icon: string | null;
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  icon: string;
 
-  @Column({ name: 'sort_order', default: 0 })
+  @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number;
 
-  @Column({ name: 'is_default', default: false })
+  @Column({ name: 'is_default', type: 'boolean', default: false })
   isDefault: boolean;
 
   @UpdateDateColumn({ name: 'updated_at' })
