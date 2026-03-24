@@ -2,8 +2,6 @@ version: '3.9'
 
 services:
 
-# ── API ─────────────────────────────────────────────
-
 api:
 build:
 context: .
@@ -66,26 +64,6 @@ healthcheck:
   start_period: 40s
 ```
 
-# ❌ DISABLED SEED (CAUSE OF YOUR ERROR)
-
-# seed:
-
-# build:
-
-# context: .
-
-# target: builder
-
-# command: npx ts-node src/database/seeds/demo.seed.ts
-
-# depends_on:
-
-# api:
-
-# condition: service_healthy
-
-# ── PostgreSQL ──────────────────────────────────────
-
 postgres:
 image: postgres:16-alpine
 environment:
@@ -102,8 +80,6 @@ interval: 5s
 timeout: 5s
 retries: 10
 restart: unless-stopped
-
-# ── Redis ───────────────────────────────────────────
 
 redis:
 image: redis:7-alpine
